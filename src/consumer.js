@@ -1,8 +1,7 @@
 const kafka = require('kafka-node')
-
+require('dotenv').config();
 const client = new kafka.KafkaClient({ kafkaHost: process.env.KAFKA_SERVER });
-
-const consumer = new kafka.Consumer(
+/* const consumer = new kafka.Consumer(
     client,
     [ { topic: process.env.KAFKA_TOPIC, partition: 0 } ],
     {
@@ -13,6 +12,6 @@ const consumer = new kafka.Consumer(
         encoding: 'utf8',
         fromOffset: false
     }
-);
+); */
 
-module.exports = consumer;
+module.exports = client;

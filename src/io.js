@@ -1,7 +1,6 @@
 
-const createSocket = (server, consumer) => {
+const createSocket = (server) => {
     const io = require('socket.io')(server)
-
 
     // Handle Socket connections
     io.on('connection', socket => {
@@ -53,34 +52,26 @@ const createSocket = (server, consumer) => {
         })
 
         socket.on('disconnect', () => console.log(`<-- LEFT  : ${socket.id}`))
-
         return io
     })
 
-    // Listen for Kafka 
+    /* // Listen for Kafka 
     consumer.on('message', ({ value, }) => {
-
         console.log('here');
         console.log(
           'kafka-> ',
           value
         );
-
-        /* // Parse the JSON value into an object
+        // Parse the JSON value into an object
         const { payload, } = JSON.parse(value)
-
         // Get the properties from the update
         const { properties, } = payload.after
-
         // ... and the status
         const { status, } = properties
-
         console.log('\n\nemitting from kafka:', status, properties)
-
         // Emit the message through all connected sockets
-        io.emit(status, properties) */
-    })
-
+        io.emit(status, properties) 
+    }) */
 }
 
 module.exports = createSocket
