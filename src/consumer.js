@@ -1,9 +1,10 @@
 const kafka = require('kafka-node')
+
 require('dotenv').config();
-const client = new kafka.KafkaClient({ kafkaHost: process.env.KAFKA_SERVER });
-/* const consumer = new kafka.Consumer(
-    client,
-    [ { topic: process.env.KAFKA_TOPIC, partition: 0 } ],
+const KafkaClient = new kafka.KafkaClient({ kafkaHost: process.env.KAFKA_SERVER });
+const consumer = new kafka.Consumer(
+    KafkaClient,
+    [],
     {
         groupId: process.env.KAFKA_GROUP,
         autoCommit: true,
@@ -12,6 +13,6 @@ const client = new kafka.KafkaClient({ kafkaHost: process.env.KAFKA_SERVER });
         encoding: 'utf8',
         fromOffset: false
     }
-); */
+);
 
-module.exports = client;
+module.exports = {consumer, KafkaClient};
