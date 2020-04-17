@@ -2,8 +2,13 @@ const express = require('express')
 const asyncify = require('express-asyncify')
 const kafka = require('kafka-node')
 const configConsumer = require('./consumer')
+const webpush = require('./webpush')
+
+let pushSuscriptions;
 
 const url = asyncify(express.Router())
+
+
 url.post('/conectTopic', async (request, response) => {
     if (request.body.topic == null ){
         response.status(400).send({status : "Error", msg : "property topic is required"});
@@ -13,7 +18,14 @@ url.post('/conectTopic', async (request, response) => {
     response.json(request.body)
 })
 
+url.post('/suscription',async (req,res) => {
+    pushSuscriptions = req.body    
+    console.log("Conexion Push Manager 1", pushSuscriptions);
+    res.status(200).json();
+})
+
 function connectTopicKafka(topic) {
+      
 
     configConsumer.consumer.addTopics([topic], function (err, added) {
         if (err) {
@@ -41,6 +53,7 @@ function connectTopicKafka(topic) {
     }
 }
 
+
 configConsumer.consumer.on('ready',  () => {
     console.log('conncted topic: ' +topic);
 }); 
@@ -52,6 +65,7 @@ configConsumer.consumer.on('message', ({ value, }) => {
         'kafka-> ',
         value
     );
+     webpush.sendNotification(pushSuscriptions, value) 
 })
 
 configConsumer.consumer.on('error', (err) => {
