@@ -1,77 +1,46 @@
+const configConsumer = require('./consumer')
+
+const conectServiceKafka = require('./conectService')
 
 const createSocket = (server) => {
     const io = require('socket.io')(server)
-
     // Handle Socket connections
     io.on('connection', socket => {
         console.log(`--> JOINED: ${socket.id}`)
-
-
-        // You could just use a plain cypher query instead:
-        // const session = driver.session()
-        // session.run(`MATCH (n:Node) RETURN n`)
-        //     .then(res => {
-        //         return res.records.map(row => row.get('n').properties)
-        //     })
-        //     .then(data => socket.emit('welcome', data))
-
-
-        // Handle Lock Event
-        socket.on('lock', data => {
-            console.log(`\n    LOCK:   ${socket.id} locked ${data.id}`)
-
-            // const session = driver.session()
-            // session.run(`MATCH (n:Node {id: $id}) SET n.status = 'locked'`, data)
-            //     .then(() => {
-            //         io.emit('locked', { by:socket.id, ...data })
-            //     })
-            //     .catch(e => console.error(e))
-
-                // .then(json => io.emit('locked', json))
+        socket.on('new_conection', data => {
+            console.log("new user conected")
+            socket.join(data.topic);
+            conectServiceKafka.connectTopicKafka(data.topic)
         })
-
-        // Handle Unlock Event
-        socket.on('unlock', data => {
-            console.log(`\n    UNLOCK: ${socket.id} unlocked ${data.id} at ${data.x},${data.y}`)
-
-            // session.run(`MATCH (n:Node {id: $id}) SET n.status = 'unlocked', n.x = $x, n.y = $y `, data)
-            //     .then(() => {
-            //         io.emit('unlocked', { by:socket.id, ...data })
-            //     })
-            //     .catch(e => console.error(e))
-
-                // .then(json => io.emit('unlocked', json))
-
-            
-        })
-
-        socket.on('move', data => {
-            console.log(`\n    MOVE  : ${socket.id} moved ${data.id} to ${data.x},${data.y}`)
-
-            io.emit('moved', { by:socket.id, ...data })
-        })
-
         socket.on('disconnect', () => console.log(`<-- LEFT  : ${socket.id}`))
         return io
     })
+    //Consumer Config
+    configConsumer.consumer.on('message',  (message) => {
+        console.log('MSG: topic: %s, offset: %s', message.topic, message.offset);
+        let jsonValue = JSON.parse(message.value)
+        if(message.topic.includes('message-')){
+            console.log('kafka MESSAGE-> ', jsonValue );
+           // io.emit("notificacion", { topic: message.topic, value: message.value })
+            io.to(jsonValue.usuarioReceptor).emit("mensaje", { topic: message.topic, value: message.value });
+        }else {
+            console.log('kafka NOTIFICACION-> ',jsonValue);
+            // io.emit("message", { topic: message.topic, value: message.value })
+            io.to(message.topic).emit("notificacion", { topic: message.topic, value: message.value });
+        }
+    });
 
-    /* // Listen for Kafka 
-    consumer.on('message', ({ value, }) => {
-        console.log('here');
-        console.log(
-          'kafka-> ',
-          value
-        );
-        // Parse the JSON value into an object
-        const { payload, } = JSON.parse(value)
-        // Get the properties from the update
-        const { properties, } = payload.after
-        // ... and the status
-        const { status, } = properties
-        console.log('\n\nemitting from kafka:', status, properties)
-        // Emit the message through all connected sockets
-        io.emit(status, properties) 
-    }) */
+    configConsumer.consumer.on('error', (err) => {
+        console.log('CONSUMER ERROR:', err);
+    })
+
+    configConsumer.consumer.on('offsetOutOfRange', function (err) {
+        console.log('CONSUMER OOR:', err);
+    });
+
+    configConsumer.consumer.on('done', function() {
+        console.log('Consumer got done');
+    });
 }
 
 module.exports = createSocket

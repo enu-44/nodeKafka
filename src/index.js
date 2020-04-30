@@ -6,9 +6,9 @@ const conectService = require('./conectService')
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
-app.use('/v1', conectService)
+// app.use('/v1', conectService)
 app.get('/', (req, res) => res.send('Hello!'))
-const server = app.listen(3000, () => console.log('Listening on http://localhost:3000'))
+const server = app.listen(3001, () => console.log('Listening on http://localhost:3001'))
 
 // Kafka consumer
 // const consumer = require('./consumer')

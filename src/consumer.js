@@ -15,4 +15,13 @@ const consumer = new kafka.Consumer(
     }
 );
 
+KafkaClient.on('close', function(){ 
+    console.log('KafkaClient close'); 
+});
+KafkaClient.on('error', function(err) { console.log('KafkaClient Error:', err); });
+KafkaClient.on('connect', function(){ console.log('Kafka connected'); });
+KafkaClient.on('ready', function() {
+    console.log('client is ready, register for quotes');
+});
+
 module.exports = {consumer, KafkaClient};

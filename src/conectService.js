@@ -14,17 +14,34 @@ url.post('/conectTopic', async (request, response) => {
 })
 
 function connectTopicKafka(topic) {
+// const connectTopicKafka = (topic) => {
 
+    // SUSCRIBE TOPICS NOTIIFCATIONS
+    //=================================================================
     configConsumer.consumer.addTopics([topic], function (err, added) {
         if (err) {
-            console.log('TOPIC ERROR');
+            console.log('NOTIFICATION TOPIC ERROR');
             console.error(err);
-            var n = err.message.includes(`${topic} do not exist`);
+            var n = err.message.includes(`${topic} notificacion do not exist`);
             if(n) {
                 crearTopic(topic);
             }
         }
-        console.log("TOPIC ADDED",added);
+        console.log("TOPIC NOTIFICATION ADDED",added);
+    });
+
+    // SUSCRIBE TOPICS MESSAGING
+    //=================================================================
+    configConsumer.consumer.addTopics(['message-'+topic], function (err, added) {
+        if (err) {
+            console.log('MESSAGE TOPIC ERROR');
+            console.error(err);
+            var n = err.message.includes(`'message-'${topic} message do not exist`);
+            if(n) {
+                crearTopic('message-'+topic);
+            }
+        }
+        console.log("TOPIC MESSAGE ADDED",added);
     });
 
     function crearTopic(topic){
@@ -45,21 +62,9 @@ configConsumer.consumer.on('ready',  () => {
     console.log('conncted topic: ' +topic);
 }); 
 
-// Listen for Kafka 
-configConsumer.consumer.on('message', ({ value, }) => {
-    console.log('here');
-    console.log(
-        'kafka-> ',
-        value
-    );
-})
-
-configConsumer.consumer.on('error', (err) => {
-    console.log('eror here');
-    // console.log('kafka-> ',err);
-    // Tpic not exist--> Create
-    
-})
 
 
-module.exports = url 
+module.exports = {
+    connectTopicKafka,
+}
+ 
